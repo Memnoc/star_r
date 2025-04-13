@@ -5,12 +5,14 @@ use nom::{
     sequence::delimited,
 };
 
+// NOTE: Struct for Strings
 #[allow(dead_code)]
 #[derive(Debug)]
 pub enum Atom {
     String(String),
 }
 
+// HEADER: parser for strings
 pub fn parse_string(input: &str) -> IResult<&str, Atom> {
     delimited(tag("\""), take_until("\""), tag("\""))
         .map(|s: &str| {
@@ -20,12 +22,14 @@ pub fn parse_string(input: &str) -> IResult<&str, Atom> {
         .parse(input)
 }
 
+// NOTE: Struct for Functions
 #[allow(dead_code)]
 #[derive(Debug)]
 pub enum Expr {
     Call(String, Atom),
 }
 
+// HEADER: parser for function calls
 pub fn parse_call(input: &str) -> IResult<&str, Expr> {
     let parse_name = alpha1;
     let parse_arg = delimited(tag("("), parse_string, tag(")"));
