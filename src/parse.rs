@@ -12,13 +12,18 @@ pub enum Atom {
     String(String),
 }
 
+impl std::fmt::Display for Atom {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Atom::String(string) => write!(f, "{string}"),
+        }
+    }
+}
+
 // HEADER: parser for strings
 pub fn parse_string(input: &str) -> IResult<&str, Atom> {
     delimited(tag("\""), take_until("\""), tag("\""))
-        .map(|s: &str| {
-            println!("Final string: {:?}", s);
-            Atom::String(s.to_string())
-        })
+        .map(|s: &str| Atom::String(s.to_string()))
         .parse(input)
 }
 
@@ -32,9 +37,9 @@ pub enum Expr {
 // HEADER: parser for function calls
 pub fn parse_call(input: &str) -> IResult<&str, Expr> {
     let parse_name = alpha1;
-    let parse_arg = delimited(tag("("), parse_string, tag(")"));
+    let parse_arg = delimited(tag("!("), parse_string, tag(")"));
     let parser = (parse_name, parse_arg);
     parser
-        .map(|(name, arg)| Expr::Call(name.to_string(), arg))
+        .map(|(name, arg)| Expr::Call(format!("{}!", name), arg))
         .parse(input)
 }
