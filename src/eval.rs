@@ -7,5 +7,6 @@ pub fn eval(expr: Expr) {
                 println!("{arg}");
             }
         }
+        _ => {}
     }
 }

@@ -4,6 +4,7 @@ mod parse;
 #[allow(unused_variables)]
 fn main() {
     let input = include_str!("../input.star");
-    let (_, expr) = parse::parse_call(input).unwrap();
-    eval::eval(expr);
+    let (rest, expr) = parse::parse_expr(input).unwrap();
+    dbg!(&rest, &expr);
+    // eval::eval(expr);
 }
