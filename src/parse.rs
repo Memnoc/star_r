@@ -23,12 +23,14 @@ where
 #[derive(Debug)]
 pub enum Atom {
     String(String),
+    Name(String),
 }
 
 impl std::fmt::Display for Atom {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Atom::String(string) => write!(f, "{string}"),
+            Atom::Name(string) => write!(f, "{string}"),
         }
     }
 }
@@ -38,6 +40,19 @@ pub fn parse_string(input: &str) -> IResult<&str, Atom> {
     delimited(tag("\""), take_until("\""), tag("\""))
         .map(|s: &str| Atom::String(s.to_string()))
         .parse(input)
+}
+
+// HEADER: parser for variables
+pub fn parse_name(input: &str) -> IResult<&str, Atom> {
+    let parse_name = alpha1;
+    let parser = parse_name;
+    parser
+        .map(|name: &str| Atom::Name(name.to_string()))
+        .parse(input)
+}
+
+pub fn parse_atom(input: &str) -> IResult<&str, Atom> {
+    alt((parse_name, parse_string)).parse(input)
 }
 
 // NOTE: Struct for Functions
@@ -51,7 +66,7 @@ pub enum Expr {
 // HEADER: parser for function calls
 pub fn parse_call(input: &str) -> IResult<&str, Expr> {
     let parse_name = alpha1;
-    let parse_arg = delimited(tag("!("), parse_string, tag(")"));
+    let parse_arg = delimited(tag("!("), parse_atom, tag(")"));
     let parser = (parse_name, parse_arg);
     parser
         .map(|(name, arg)| Expr::Call(format!("{}!", name), arg))
@@ -62,7 +77,7 @@ pub fn parse_call(input: &str) -> IResult<&str, Expr> {
 // let <name> = <atom>
 pub fn parse_variable(input: &str) -> IResult<&str, Expr> {
     let parse_name = preceded(tag("let"), ws(alpha1));
-    let parse_equals = preceded(tag("="), ws(parse_string));
+    let parse_equals = preceded(tag("="), ws(parse_atom));
     let parser = (parse_name, parse_equals);
     parser
         .map(|(name, value)| Expr::Let(name.to_string(), value))
