@@ -8,9 +8,7 @@ use nom::{
     sequence::{delimited, preceded},
 };
 
-//HEADER: Need WhiteSpace (ws) ignores
-// the white spaces around statements and expressions
-// and variables declarations
+//HEADER: Need WhiteSpace (ws) to handle white spaces
 pub fn ws<'a, O, E: ParseError<&'a str>, F>(inner: F) -> impl Parser<&'a str, Output = O, Error = E>
 where
     F: Parser<&'a str, Output = O, Error = E>,
@@ -18,7 +16,6 @@ where
     delimited(multispace0, inner, multispace0)
 }
 
-// NOTE: Struct for Strings
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub enum Atom {
@@ -55,7 +52,6 @@ pub fn parse_atom(input: &str) -> IResult<&str, Atom> {
     alt((parse_name, parse_string)).parse(input)
 }
 
-// NOTE: Struct for Functions
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub enum Expr {
@@ -70,7 +66,7 @@ pub fn parse_constant(input: &str) -> IResult<&str, Expr> {
     parse_atom.map(Expr::Constant).parse(input)
 }
 
-// HEADER: parser for function calls
+// HEADER: parser for function calls with added delimiters
 pub fn parse_call(input: &str) -> IResult<&str, Expr> {
     let parse_name = alpha1;
     let parse_arg = delimited(tag("!("), parse_expr, tag(")"));
@@ -80,8 +76,8 @@ pub fn parse_call(input: &str) -> IResult<&str, Expr> {
         .parse(input)
 }
 
-// HEADER: parser for function calls
-// let <name> = <atom>
+// HEADER: parser for variables with added prefixers
+// Pattern: let <name> = <atom>
 pub fn parse_variable(input: &str) -> IResult<&str, Expr> {
     let parse_name = preceded(tag("let"), ws(alpha1));
     let parse_equals = preceded(tag("="), ws(parse_atom));
@@ -91,12 +87,14 @@ pub fn parse_variable(input: &str) -> IResult<&str, Expr> {
         .parse(input)
 }
 
-// HEADER: for we need to be able to combine variable
-// declarations and assignments to function calls
+// HEADER: it's easier and more functional to combine
+// different parsers in sequence and search for a match
 pub fn parse_expr(input: &str) -> IResult<&str, Expr> {
     alt((parse_variable, parse_call, parse_constant)).parse(input)
 }
 
+// HEADER: Just commons sense at this point and
+// a sequence matching with many0 for good measure
 pub fn parser(input: &str) -> IResult<&str, Vec<Expr>> {
     many0(ws(parse_expr)).parse(input)
 }

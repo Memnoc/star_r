@@ -1,6 +1,8 @@
 use crate::parse::*;
 use std::collections::HashMap;
 
+// HEADER: the main way the AST is traversed while
+// keeping context
 pub fn eval(expr: Expr, context: &mut HashMap<String, Expr>) -> Expr {
     match expr {
         Expr::Call(name, arg) => {
