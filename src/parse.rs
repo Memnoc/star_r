@@ -72,7 +72,7 @@ pub fn parse_constant(input: &str) -> IResult<&str, Expr> {
 // HEADER: parser for function calls
 pub fn parse_call(input: &str) -> IResult<&str, Expr> {
     let parse_name = alpha1;
-    let parse_arg = delimited(tag("!("), parse_atom, tag(")"));
+    let parse_arg = delimited(tag("!("), parse_expr, tag(")"));
     let parser = (parse_name, parse_arg);
     parser
         .map(|(name, arg)| Expr::Call(format!("{}!", name), arg))
