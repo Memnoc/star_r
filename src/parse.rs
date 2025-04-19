@@ -2,7 +2,7 @@ use nom::{
     IResult, Parser,
     branch::alt,
     bytes::complete::{tag, take_until},
-    character::{complete::multispace0, streaming::alpha1},
+    character::{complete::alpha1, complete::multispace0},
     error::ParseError,
     multi::many0,
     sequence::{delimited, preceded},
@@ -67,7 +67,7 @@ pub enum Expr {
 
 // HEADER: for we need to be able to parse a constant
 pub fn parse_constant(input: &str) -> IResult<&str, Expr> {
-    parse_atom.map(|atom| Expr::Constant(atom)).parse(input)
+    parse_atom.map(Expr::Constant).parse(input)
 }
 
 // HEADER: parser for function calls
@@ -97,6 +97,6 @@ pub fn parse_expr(input: &str) -> IResult<&str, Expr> {
     alt((parse_variable, parse_call, parse_constant)).parse(input)
 }
 
-pub fn final_parser(input: &str) -> IResult<&str, Vec<Expr>> {
+pub fn parser(input: &str) -> IResult<&str, Vec<Expr>> {
     many0(ws(parse_expr)).parse(input)
 }
