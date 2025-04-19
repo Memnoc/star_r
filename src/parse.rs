@@ -93,5 +93,5 @@ pub fn parse_variable(input: &str) -> IResult<&str, Expr> {
 // HEADER: for we need to be able to combine variable
 // declarations and assignments to function calls
 pub fn parse_expr(input: &str) -> IResult<&str, Vec<Expr>> {
-    many0(alt((parse_variable, parse_call))).parse(input)
+    many0(alt((parse_variable, parse_call, parse_constant))).parse(input)
 }
