@@ -60,8 +60,8 @@ pub fn parse_atom(input: &str) -> IResult<&str, Atom> {
 #[derive(Debug)]
 pub enum Expr {
     Constant(Atom),
-    Let(String, Atom),
-    Call(String, Atom),
+    Let(String, Box<Expr>),
+    Call(String, Box<Expr>),
 }
 
 // HEADER: for we need to be able to parse a constant
@@ -75,7 +75,7 @@ pub fn parse_call(input: &str) -> IResult<&str, Expr> {
     let parse_arg = delimited(tag("!("), parse_expr, tag(")"));
     let parser = (parse_name, parse_arg);
     parser
-        .map(|(name, arg)| Expr::Call(format!("{}!", name), arg))
+        .map(|(name, arg)| Expr::Call(name.to_string(), Box::new(arg)))
         .parse(input)
 }
 
@@ -86,12 +86,16 @@ pub fn parse_variable(input: &str) -> IResult<&str, Expr> {
     let parse_equals = preceded(tag("="), ws(parse_atom));
     let parser = (parse_name, parse_equals);
     parser
-        .map(|(name, value)| Expr::Let(name.to_string(), value))
+        .map(|(name, value)| Expr::Let(name.to_string(), Box::new(Expr::Constant(value))))
         .parse(input)
 }
 
 // HEADER: for we need to be able to combine variable
 // declarations and assignments to function calls
-pub fn parse_expr(input: &str) -> IResult<&str, Vec<Expr>> {
-    many0(alt((parse_variable, parse_call, parse_constant))).parse(input)
+pub fn parse_expr(input: &str) -> IResult<&str, Expr> {
+    alt((parse_variable, parse_call, parse_constant)).parse(input)
+}
+
+pub fn final_parser(input: &str) -> IResult<&str, Vec<Expr>> {
+    many0(ws(parse_expr)).parse(input)
 }
