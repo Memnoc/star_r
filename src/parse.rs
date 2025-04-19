@@ -59,8 +59,14 @@ pub fn parse_atom(input: &str) -> IResult<&str, Atom> {
 #[allow(dead_code)]
 #[derive(Debug)]
 pub enum Expr {
+    Constant(Atom),
     Let(String, Atom),
     Call(String, Atom),
+}
+
+// HEADER: for we need to be able to parse a constant
+pub fn parse_constant(input: &str) -> IResult<&str, Expr> {
+    parse_atom.map(|atom| Expr::Constant(atom)).parse(input)
 }
 
 // HEADER: parser for function calls
