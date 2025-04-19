@@ -20,7 +20,7 @@ where
 
 // NOTE: Struct for Strings
 #[allow(dead_code)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Atom {
     String(String),
     Name(String),
@@ -57,8 +57,9 @@ pub fn parse_atom(input: &str) -> IResult<&str, Atom> {
 
 // NOTE: Struct for Functions
 #[allow(dead_code)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Expr {
+    Void,
     Constant(Atom),
     Let(String, Box<Expr>),
     Call(String, Box<Expr>),
