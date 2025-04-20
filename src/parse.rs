@@ -59,7 +59,7 @@ pub enum Expr {
     Void,
     Constant(Atom),
     Let(String, Box<Expr>),
-    Call(String, Box<Expr>),
+    Call(String, Vec<Expr>),
     Closure(Vec<String>, Vec<Expr>),
 }
 
@@ -71,10 +71,10 @@ pub fn parse_constant(input: &str) -> IResult<&str, Expr> {
 // HEADER: parser for function calls with added delimiters
 pub fn parse_call(input: &str) -> IResult<&str, Expr> {
     let parse_name = alpha1;
-    let parse_arg = delimited(tag("!("), parse_expr, tag(")"));
+    let parse_arg = delimited(tag("("), separated_list0(tag(","), parse_expr), tag(")"));
     let parser = (parse_name, parse_arg);
     parser
-        .map(|(name, arg)| Expr::Call(name.to_string(), Box::new(arg)))
+        .map(|(name, arg)| Expr::Call(name.to_string(), arg))
         .parse(input)
 }
 
@@ -82,10 +82,10 @@ pub fn parse_call(input: &str) -> IResult<&str, Expr> {
 // Pattern: let <name> = <atom>
 pub fn parse_variable(input: &str) -> IResult<&str, Expr> {
     let parse_name = preceded(tag("let"), ws(alpha1));
-    let parse_equals = preceded(tag("="), ws(parse_atom));
+    let parse_equals = preceded(tag("="), ws(parse_expr));
     let parser = (parse_name, parse_equals);
     parser
-        .map(|(name, value)| Expr::Let(name.to_string(), Box::new(Expr::Constant(value))))
+        .map(|(name, value)| Expr::Let(name.to_string(), Box::new(value)))
         .parse(input)
 }
 
@@ -95,16 +95,18 @@ pub fn parse_variable(input: &str) -> IResult<&str, Expr> {
 pub fn parse_closure(input: &str) -> IResult<&str, Expr> {
     let parse_name = map(alpha1, String::from);
     let parse_args = delimited(tag("|"), separated_list0(tag(","), parse_name), tag("|"));
-    let parser = (parse_args, parse_expr);
+    let parse_body = parse_expr;
+    let parser = (ws(parse_args), ws(parse_body));
+
     parser
-        .map(|(args, expr)| Expr::Closure(args, vec![expr]))
+        .map(|(args, body)| Expr::Closure(args, vec![body]))
         .parse(input)
 }
 
 // HEADER: it's easier and more functional to combine
 // different parsers in sequence and search for a match
 pub fn parse_expr(input: &str) -> IResult<&str, Expr> {
-    alt((parse_variable, parse_call, parse_constant)).parse(input)
+    alt((parse_variable, parse_call, parse_closure, parse_constant)).parse(input)
 }
 
 // HEADER: Just commons sense at this point and
