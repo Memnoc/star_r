@@ -105,6 +105,8 @@ pub fn parse_closure(input: &str) -> IResult<&str, Expr> {
 
 // HEADER: it's easier and more functional to combine
 // different parsers in sequence and search for a match
+// the sequence actually has a sense (or reason) as I was
+// having issues parsing keywords as variables
 pub fn parse_expr(input: &str) -> IResult<&str, Expr> {
     alt((parse_variable, parse_call, parse_closure, parse_constant)).parse(input)
 }

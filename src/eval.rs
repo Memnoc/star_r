@@ -36,7 +36,7 @@ pub fn eval(expr: Expr, context: &mut HashMap<String, Expr>) -> Expr {
         }
         Expr::Constant(ref atom) => match atom {
             Atom::Name(name) => {
-                // println!("Looking up variable:{}", name);
+                // not unwrapping and better error handling
                 context.get(name).cloned().unwrap_or_else(|| {
                     eprintln!("Error: Variable '{}' not defined", name);
                     Expr::Void
