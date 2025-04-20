@@ -11,6 +11,6 @@ fn main() {
     for expr in exprs {
         let result = eval::eval(expr, &mut context);
         println!("Result: {:?}", result);
-        println!("Context: {:?}", context);
+        println!("Result: {:?}", result);
     }
 }

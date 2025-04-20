@@ -2,9 +2,10 @@ use nom::{
     IResult, Parser,
     branch::alt,
     bytes::complete::{tag, take_until},
-    character::{complete::alpha1, complete::multispace0},
+    character::complete::{alpha1, multispace0},
+    combinator::map,
     error::ParseError,
-    multi::many0,
+    multi::{many0, separated_list0},
     sequence::{delimited, preceded},
 };
 
@@ -59,6 +60,7 @@ pub enum Expr {
     Constant(Atom),
     Let(String, Box<Expr>),
     Call(String, Box<Expr>),
+    Closure(Vec<String>, Vec<Expr>),
 }
 
 // HEADER: for we need to be able to parse a constant
@@ -84,6 +86,18 @@ pub fn parse_variable(input: &str) -> IResult<&str, Expr> {
     let parser = (parse_name, parse_equals);
     parser
         .map(|(name, value)| Expr::Let(name.to_string(), Box::new(Expr::Constant(value))))
+        .parse(input)
+}
+
+// HEADER: parser for variables with added prefixers
+// |name, argument| println(name);
+// Pattern: |<arg>* | <expr>
+pub fn parse_closure(input: &str) -> IResult<&str, Expr> {
+    let parse_name = map(alpha1, String::from);
+    let parse_args = delimited(tag("|"), separated_list0(tag(","), parse_name), tag("|"));
+    let parser = (parse_args, parse_expr);
+    parser
+        .map(|(args, expr)| Expr::Closure(args, vec![expr]))
         .parse(input)
 }
 
