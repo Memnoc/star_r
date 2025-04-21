@@ -61,6 +61,7 @@ pub enum Expr {
     Let(String, Box<Expr>),
     Call(String, Vec<Expr>),
     Closure(Vec<String>, Vec<Expr>),
+    Function(Vec<String>, Vec<Expr>),
 }
 
 // HEADER: for we need to be able to parse a constant
@@ -93,6 +94,20 @@ pub fn parse_variable(input: &str) -> IResult<&str, Expr> {
 // |name, argument| println(name);
 // Pattern: |<arg>* | <expr>
 pub fn parse_closure(input: &str) -> IResult<&str, Expr> {
+    let parse_name = map(alpha1, String::from);
+    let parse_args = delimited(tag("|"), separated_list0(tag(","), parse_name), tag("|"));
+    let parse_body = parse_expr;
+    let parser = (ws(parse_args), ws(parse_body));
+
+    parser
+        .map(|(args, body)| Expr::Closure(args, vec![body]))
+        .parse(input)
+}
+
+// HEADER: parser for variables with added prefixers
+// |name, argument| println(name);
+// Pattern: |<arg>* | <expr>
+pub fn parse_function(input: &str) -> IResult<&str, Expr> {
     let parse_name = map(alpha1, String::from);
     let parse_args = delimited(tag("|"), separated_list0(tag(","), parse_name), tag("|"));
     let parse_body = parse_expr;
