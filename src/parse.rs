@@ -80,7 +80,7 @@ pub fn parse_call(input: &str) -> IResult<&str, Expr> {
 }
 
 // HEADER: parser for variables with added prefixers
-// Pattern: let <name> = <atom>
+// Parsing: let <name> = <atom>
 pub fn parse_variable(input: &str) -> IResult<&str, Expr> {
     let parse_name = preceded(tag("let"), ws(alpha1));
     let parse_equals = preceded(tag("="), ws(parse_expr));
@@ -92,7 +92,7 @@ pub fn parse_variable(input: &str) -> IResult<&str, Expr> {
 
 // HEADER: parser for variables with added prefixers
 // |name, argument| println(name);
-// Pattern: |<arg>* | <expr>
+// Parsing: |<arg>* | <expr>
 pub fn parse_closure(input: &str) -> IResult<&str, Expr> {
     let parse_name = map(alpha1, String::from);
     let parse_args = delimited(tag("|"), separated_list0(tag(","), parse_name), tag("|"));
@@ -104,9 +104,8 @@ pub fn parse_closure(input: &str) -> IResult<&str, Expr> {
         .parse(input)
 }
 
-// HEADER: parser for variables with added prefixers
-// |name, argument| println(name);
-// Pattern: |<arg>* | <expr>
+// HEADER: parser for function statements
+// Parsing: fn <name>(<arg>*) { <expr*> }
 pub fn parse_function(input: &str) -> IResult<&str, Expr> {
     let parse_name = map(alpha1, String::from);
     let parse_args = delimited(tag("|"), separated_list0(tag(","), parse_name), tag("|"));
