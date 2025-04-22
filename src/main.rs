@@ -9,8 +9,8 @@ fn main() {
     let (_, exprs) = parse::parser(input).unwrap();
     let mut context = HashMap::new();
     for expr in exprs {
-        println!("Evaluating: {:?}", expr);
+        // println!("Evaluating: {:?}", expr);
         let result = eval::eval(expr.clone(), &mut context);
-        println!("Result: {:?}", result);
+        // println!("Result: {:?}", result);
     }
 }
