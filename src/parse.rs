@@ -64,6 +64,15 @@ pub enum Expr {
     Function(String, Vec<String>, Vec<Expr>),
 }
 
+impl std::fmt::Display for Expr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Expr::Constant(atom) => write!(f, "{atom}"),
+            _ => write!(f, ""),
+        }
+    }
+}
+
 // HEADER: for we need to be able to parse a constant
 pub fn parse_constant(input: &str) -> IResult<&str, Expr> {
     parse_atom.map(Expr::Constant).parse(input)
@@ -72,7 +81,11 @@ pub fn parse_constant(input: &str) -> IResult<&str, Expr> {
 // HEADER: parser for function calls with added delimiters
 pub fn parse_call(input: &str) -> IResult<&str, Expr> {
     let parse_name = alpha1;
-    let parse_arg = delimited(tag("("), separated_list0(tag(","), parse_expr), tag(")"));
+    let parse_arg = delimited(
+        tag("("),
+        separated_list0(tag(","), ws(parse_expr)),
+        tag(")"),
+    );
     let parser = (parse_name, parse_arg);
     parser
         .map(|(name, arg)| Expr::Call(name.to_string(), arg))
@@ -82,7 +95,7 @@ pub fn parse_call(input: &str) -> IResult<&str, Expr> {
 // HEADER: parser for variables with added prefixers
 // Pattern: let <name> = <atom>
 pub fn parse_variable(input: &str) -> IResult<&str, Expr> {
-    let parse_name = preceded(tag("let"), ws(alpha1));
+    let parse_name = preceded(tag("let"), ws(parse_identifier));
     let parse_equals = preceded(tag("="), ws(parse_expr));
     let parser = (parse_name, parse_equals);
     parser
@@ -95,7 +108,11 @@ pub fn parse_variable(input: &str) -> IResult<&str, Expr> {
 // Pattern: |<arg>* | <expr>
 pub fn parse_closure(input: &str) -> IResult<&str, Expr> {
     let parse_name = map(alpha1, String::from);
-    let parse_args = delimited(tag("|"), separated_list0(tag(","), parse_name), tag("|"));
+    let parse_args = delimited(
+        tag("|"),
+        separated_list0(tag(","), parse_name),
+        parse_identifier,
+    );
     let parse_body = parse_expr;
     let parser = (ws(parse_args), ws(parse_body));
 
@@ -112,15 +129,20 @@ pub fn parse_identifier(input: &str) -> IResult<&str, String> {
 // Parsing: fn <name>(<arg>*) { <expr*> }
 pub fn parse_function(input: &str) -> IResult<&str, Expr> {
     let fn_keyword = ws(tag("fn"));
-    let parse_fn_name = ws(map(alpha1, String::from));
+    let parse_fn_name = ws(parse_identifier);
     let parse_name = map(alpha1, String::from);
-    let parse_args = delimited(tag("("), separated_list0(tag(","), parse_name), tag(")"));
-    let parse_body = delimited(tag("{"), ws(many0(parse_expr)), tag("}"));
-    let parser = preceded(fn_keyword, (parse_fn_name, parse_args, parse_body));
-
-    parser
-        .map(|(name, args, body)| Expr::Function(name, args, body))
-        .parse(input)
+    let parse_args = delimited(
+        tag("("),
+        separated_list0(tag(","), ws(parse_name)),
+        tag(")"),
+    );
+    let parse_body = delimited(tag("{"), many0(ws(parse_expr)), tag("}"));
+    preceded(
+        fn_keyword,
+        ws(((parse_fn_name), ws(parse_args), ws(parse_body))),
+    )
+    .map(|(name, args, body)| Expr::Function(name, args, body))
+    .parse(input)
 }
 
 // HEADER: it's easier and more functional to combine
@@ -128,7 +150,14 @@ pub fn parse_function(input: &str) -> IResult<&str, Expr> {
 // the sequence actually has a sense (or reason) as I was
 // having issues parsing keywords as variables
 pub fn parse_expr(input: &str) -> IResult<&str, Expr> {
-    alt((parse_variable, parse_call, parse_closure, parse_constant)).parse(input)
+    alt((
+        parse_function,
+        parse_closure,
+        parse_call,
+        parse_variable,
+        parse_constant,
+    ))
+    .parse(input)
 }
 
 // HEADER: Just commons sense at this point and

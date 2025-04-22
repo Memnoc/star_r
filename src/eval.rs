@@ -7,13 +7,14 @@ pub fn eval(expr: Expr, context: &mut HashMap<String, Expr>) -> Expr {
     // println!("Context: {:?}", context);
     match expr {
         Expr::Call(name, args) => {
-            if name == "println" {
+            if name == "println" || name == "println!" {
                 for arg in args {
                     let arg = eval(arg, context);
-                    print!("{arg:?}");
+                    print!("{}", arg);
                 }
+                println!();
             } else {
-                match context.get(&name) {
+                match context.get(&name).cloned() {
                     Some(Expr::Closure(parameters, body)) => {
                         let mut scope = context.clone();
 
@@ -45,5 +46,10 @@ pub fn eval(expr: Expr, context: &mut HashMap<String, Expr>) -> Expr {
             _ => expr,
         },
         Expr::Void | Expr::Closure(_, _) => expr,
+        Expr::Function(name, args, body) => {
+            context.insert(name, Expr::Closure(args, body));
+            Expr::Void
+        }
     }
 }
+
