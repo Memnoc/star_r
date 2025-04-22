@@ -104,17 +104,19 @@ pub fn parse_closure(input: &str) -> IResult<&str, Expr> {
         .parse(input)
 }
 
-pub fn parse_name(input: &str) -> IResult<&str, Expr> {
-    unimplemented!()
+pub fn parse_identifier(input: &str) -> IResult<&str, String> {
+    map(alpha1, String::from).parse(input)
 }
 
 // HEADER: parser for function statements
 // Parsing: fn <name>(<arg>*) { <expr*> }
 pub fn parse_function(input: &str) -> IResult<&str, Expr> {
+    let fn_keyword = ws(tag("fn"));
+    let parse_fn_name = ws(map(alpha1, String::from));
     let parse_name = map(alpha1, String::from);
     let parse_args = delimited(tag("("), separated_list0(tag(","), parse_name), tag(")"));
     let parse_body = delimited(tag("{"), ws(many0(parse_expr)), tag("}"));
-    let parser = preceded(tag("fn"), (parse_name, parse_args, parse_body));
+    let parser = preceded(fn_keyword, (parse_fn_name, parse_args, parse_body));
 
     parser
         .map(|(name, args, body)| Expr::Function(name, args, body))
