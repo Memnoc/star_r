@@ -1,3 +1,6 @@
-fn greet(name) {
-    return "Hello {name}"
+fn factory() {
+    return "This is a string"
   }
+
+let string = factory()
+println(string)
