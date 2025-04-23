@@ -23,6 +23,9 @@ pub fn eval(expr: Expr, context: &mut HashMap<String, Expr>) -> Expr {
                             scope.insert(parameter.clone(), expr);
                         }
                         for expr in body {
+                            if let Expr::Return(expr) = eval(expr.clone(), &mut scope) {
+                                return *expr;
+                            }
                             eval(expr.clone(), &mut scope);
                         }
                     }
@@ -32,7 +35,8 @@ pub fn eval(expr: Expr, context: &mut HashMap<String, Expr>) -> Expr {
             Expr::Void
         }
         Expr::Let(name, value) => {
-            context.insert(name, *value);
+            let expr = eval(*value, context);
+            context.insert(name, expr);
             Expr::Void
         }
         Expr::Constant(ref atom) => match atom {
@@ -50,6 +54,6 @@ pub fn eval(expr: Expr, context: &mut HashMap<String, Expr>) -> Expr {
             context.insert(name, Expr::Closure(args, body));
             Expr::Void
         }
+        Expr::Return(expr) => Expr::Return(Box::new(eval(*expr, context))),
     }
 }
-

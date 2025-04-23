@@ -62,6 +62,7 @@ pub enum Expr {
     Call(String, Vec<Expr>),
     Closure(Vec<String>, Vec<Expr>),
     Function(String, Vec<String>, Vec<Expr>),
+    Return(Box<Expr>),
 }
 
 impl std::fmt::Display for Expr {
@@ -76,6 +77,13 @@ impl std::fmt::Display for Expr {
 // HEADER: for we need to be able to parse a constant
 pub fn parse_constant(input: &str) -> IResult<&str, Expr> {
     parse_atom.map(Expr::Constant).parse(input)
+}
+
+// HEADER: for we need to be able to parse a return statement
+// Pattern: return <expr>
+pub fn parse_return(input: &str) -> IResult<&str, Expr> {
+    let parser = preceded(tag("return"), ws(parse_expr));
+    parser.map(|expr| Expr::Return(Box::new(expr))).parse(input)
 }
 
 // HEADER: parser for function calls with added delimiters
@@ -151,6 +159,7 @@ pub fn parse_function(input: &str) -> IResult<&str, Expr> {
 // having issues parsing keywords as variables
 pub fn parse_expr(input: &str) -> IResult<&str, Expr> {
     alt((
+        parse_return,
         parse_function,
         parse_closure,
         parse_call,
