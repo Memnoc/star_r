@@ -110,8 +110,8 @@ pub fn parse_closure(input: &str) -> IResult<&str, Expr> {
     let parse_name = map(alpha1, String::from);
     let parse_args = delimited(
         tag("|"),
-        separated_list0(tag(","), parse_name),
-        parse_identifier,
+        separated_list0(tag(","), ws(parse_name)),
+        tag("|"),
     );
     let parse_body = parse_expr;
     let parser = (ws(parse_args), ws(parse_body));
