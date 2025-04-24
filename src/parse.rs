@@ -6,6 +6,7 @@ use nom::{
     combinator::map,
     error::ParseError,
     multi::{many0, separated_list0},
+    number::complete::double,
     sequence::{delimited, preceded},
 };
 
@@ -44,6 +45,10 @@ pub fn parse_string(input: &str) -> IResult<&str, Atom> {
     delimited(tag("\""), take_until("\""), tag("\""))
         .map(|s: &str| Atom::String(s.to_string()))
         .parse(input)
+}
+
+pub fn parse_float(input: &str) -> IResult<&str, Atom> {
+    map(double, Atom::Float).parse(input)
 }
 
 // HEADER: parser for variables
