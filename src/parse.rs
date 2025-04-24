@@ -22,6 +22,9 @@ where
 pub enum Atom {
     String(String),
     Name(String),
+    Number(isize),
+    Float(f64),
+    Boolean(bool),
 }
 
 impl std::fmt::Display for Atom {
@@ -29,6 +32,9 @@ impl std::fmt::Display for Atom {
         match self {
             Atom::String(string) => write!(f, "{string}"),
             Atom::Name(string) => write!(f, "{string}"),
+            Atom::Number(number) => write!(f, "{number}"),
+            Atom::Float(float) => write!(f, "{float}"),
+            Atom::Boolean(bool) => write!(f, "{bool}"),
         }
     }
 }
