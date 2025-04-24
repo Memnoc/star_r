@@ -47,6 +47,7 @@ pub fn parse_string(input: &str) -> IResult<&str, Atom> {
         .parse(input)
 }
 
+// HEADER: parser for floats
 pub fn parse_float(input: &str) -> IResult<&str, Atom> {
     map(double, Atom::Float).parse(input)
 }
