@@ -34,7 +34,7 @@ impl std::fmt::Display for Atom {
             Atom::Name(string) => write!(f, "{string}"),
             Atom::Number(number) => write!(f, "{number}"),
             Atom::Float(float) => write!(f, "{float}"),
-            Atom::Boolean(bool) => write!(f, "{bool}"),
+            Atom::Boolean(boolean) => write!(f, "{boolean}"),
         }
     }
 }
