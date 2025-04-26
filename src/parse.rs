@@ -52,6 +52,12 @@ pub fn parse_float(input: &str) -> IResult<&str, Atom> {
     map(double, Atom::Float).parse(input)
 }
 
+// HEADER: parser for booleans
+pub fn parse_boolean(input: &str) -> IResult<&str, Atom> {
+    let parser = alt((map(tag("true"), |_| true), map(tag("false"), |_| false)));
+    parser.map(Atom::Boolean).parse(input)
+}
+
 // HEADER: parser for variables
 pub fn parse_name(input: &str) -> IResult<&str, Atom> {
     let parse_name = alpha1;
@@ -61,6 +67,7 @@ pub fn parse_name(input: &str) -> IResult<&str, Atom> {
         .parse(input)
 }
 
+// HEADER: parser for atoms
 pub fn parse_atom(input: &str) -> IResult<&str, Atom> {
     alt((parse_name, parse_string)).parse(input)
 }
