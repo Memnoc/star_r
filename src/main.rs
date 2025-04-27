@@ -10,8 +10,9 @@ fn main() {
     let variables_input = include_str!("../input.star");
     let functions_input = include_str!("../input_functions.star");
     let return_input = include_str!("../return.star");
+    let number_input = include_str!("../input_numbers.star");
 
-    let (_, exprs) = parse::parser(return_input).unwrap();
+    let (_, exprs) = parse::parser(number_input).unwrap();
     let mut context = HashMap::new();
     for expr in exprs {
         // println!("Evaluating: {:?}", expr);

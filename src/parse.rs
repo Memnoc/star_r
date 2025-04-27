@@ -2,8 +2,11 @@ use nom::{
     IResult, Parser,
     branch::alt,
     bytes::complete::{tag, take_until},
-    character::complete::{alpha1, multispace0},
-    combinator::map,
+    character::{
+        complete::{alpha1, multispace0},
+        digit1,
+    },
+    combinator::{map, opt, recognize},
     error::ParseError,
     multi::{many0, separated_list0},
     number::complete::double,
@@ -58,6 +61,14 @@ pub fn parse_boolean(input: &str) -> IResult<&str, Atom> {
     parser.map(Atom::Boolean).parse(input)
 }
 
+// HEADER: parser for numbers
+pub fn parse_number(input: &str) -> IResult<&str, Atom> {
+    let parser = recognize(opt(tag("-")).and(digit1()));
+    parser
+        .map(|number: &str| Atom::Number(number.parse().unwrap()))
+        .parse(input)
+}
+
 // HEADER: parser for variables
 pub fn parse_name(input: &str) -> IResult<&str, Atom> {
     let parse_name = alpha1;
@@ -69,7 +80,14 @@ pub fn parse_name(input: &str) -> IResult<&str, Atom> {
 
 // HEADER: parser for atoms
 pub fn parse_atom(input: &str) -> IResult<&str, Atom> {
-    alt((parse_name, parse_string)).parse(input)
+    alt((
+        parse_name,
+        parse_string,
+        parse_float,
+        parse_number,
+        parse_boolean,
+    ))
+    .parse(input)
 }
 
 #[allow(dead_code)]
@@ -191,5 +209,6 @@ pub fn parse_expr(input: &str) -> IResult<&str, Expr> {
 // HEADER: Just commons sense at this point and
 // a sequence matching with many0 for good measure
 pub fn parser(input: &str) -> IResult<&str, Vec<Expr>> {
-    many0(ws(parse_expr)).parse(input)
+    let mut parser = many0(ws(parse_expr));
+    parser.parse(input)
 }
